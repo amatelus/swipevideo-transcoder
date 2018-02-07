@@ -103,7 +103,7 @@ module.exports = {
         });
       }
 
-      const transpose = rotate === 0 ? '' : rotate === 180 ? 'vflip,' : `transpose=${rotate === 90 ? 1 : 2},`;
+      const transpose = rotate === 0 ? '' : rotate === 180 ? 'hflip,vflip,' : `transpose=${rotate === 90 ? 1 : 2},`;
       yield new Promise((resolveConverter, rejectConverter) => {
         convert(resolveConverter, rejectConverter, 'image', ['-i', inputFile, '-q:v', 5, '-r', fps, '-threads', 0, '-vf', `${transpose}scale=w=${MAX_LENGTH}:h=${MAX_LENGTH}:force_original_aspect_ratio=decrease`, path.join(outputPath, 'image/%d.jpg')], duration * fps);
       });
