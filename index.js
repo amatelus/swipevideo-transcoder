@@ -11,6 +11,7 @@ const getMetaData = inputFilePath => new Promise((resolve, reject) => {
       width: null,
       height: null,
       fps: null,
+      rotate: null,
       hasAudio: /Stream.+Audio/.test(stdout),
     };
 
@@ -34,6 +35,8 @@ const getMetaData = inputFilePath => new Promise((resolve, reject) => {
         metaData.fps = fpsText ? +fpsText.trim().split(' ')[0] : 30;
       }
     });
+
+    metaData.rotate = rotate;
 
     if (rotate % 180 === 0) {
       metaData.width = tmpWidth;
@@ -60,7 +63,7 @@ module.exports = {
   },
   transcode: ({ inputFile, outputDir, originId, metaData, quality, option }) => new ProgressPromise((resolve, reject, progress) => {
     co(function* () {
-      const { width, height, duration, fps, hasAudio } = metaData || (yield getMetaData(inputFile));
+      const { width, height, duration, fps, hasAudio, rotate } = metaData || (yield getMetaData(inputFile));
       const MAX_LENGTH = quality || Math.max(width, height);
 
       function convert(resolveConverter, rejectConverter, type, command, frameCount) {
@@ -101,7 +104,7 @@ module.exports = {
       }
 
       yield new Promise((resolveConverter, rejectConverter) => {
-        convert(resolveConverter, rejectConverter, 'image', ['-i', inputFile, '-q:v', 5, '-r', fps, '-threads', 0, '-vf', `scale=w=${MAX_LENGTH}:h=${MAX_LENGTH}:force_original_aspect_ratio=decrease`, path.join(outputPath, 'image/%d.jpg')], duration * fps);
+        convert(resolveConverter, rejectConverter, 'image', ['-i', inputFile, '-q:v', 5, '-r', fps, '-threads', 0, '-vf', `${rotate % 180 === 0 ? '' : 'transpose=1,'}scale=w=${MAX_LENGTH}:h=${MAX_LENGTH}:force_original_aspect_ratio=decrease`, path.join(outputPath, 'image/%d.jpg')], duration * fps);
       });
 
       resolve([
